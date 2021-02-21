@@ -1,0 +1,29 @@
+.menu {
+  ul {
+    list-style-type: none;
+    margin-block: 0;
+    margin-inline: 0;
+    padding-inline: 0;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-evenly;
+
+    li {
+      font-weight: bold;
+      text-align: center;
+      color: var(--main);
+      background-color: var(--main-bg);
+      width: 100%;
+      padding: 0.5em;
+    }
+
+    li:hover {
+      color: var(--main-bg);
+      background-color: var(--main);
+    }
+  }
+
+  section {
+    display: none;
+  }
+}
