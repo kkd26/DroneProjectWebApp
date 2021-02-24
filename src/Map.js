@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 
 export default class Map extends Component {
-  state = { penDown: false, draggable: true };
+  state = { penDown: false, draggable: true, lastPos: null };
   defaultStyles = [
     {
       featureType: 'road',
@@ -28,26 +28,56 @@ export default class Map extends Component {
     draggable: true,
   };
   map = null;
+  path = null;
+
+  distanceInRange = (p1, p2, maxDist) => {
+    if (!p1) return false;
+    const { lat: lat1, lng: lon1 } = p1;
+    const { lat: lat2, lng: lon2 } = p2;
+
+    const p = 0.017453292519943295;
+    const c = Math.cos;
+    const a =
+      0.5 -
+      c((lat2 - lat1) * p) / 2 +
+      (c(lat1 * p) * c(lat2 * p) * (1 - c((lon2 - lon1) * p))) / 2;
+
+    const dist = 12742 * Math.asin(Math.sqrt(a));
+    console.log(dist);
+    return 1000 * dist < maxDist;
+  };
 
   createMarker = (pos) => {
+    this.path.getPath().push(pos);
+
     return new google.maps.Marker({
       position: pos,
       map: this.map,
-      title: 'Hello World!',
+      title: '#' + this.path.getPath().length,
+      icon: 'http://maps.google.com/mapfiles/kml/paddle/grn-blank-lv.png',
     });
   };
 
   handleMouseMove = (e) => {
     if (!this.state.penDown) return;
     const pos = { lat: e.latLng.lat(), lng: e.latLng.lng() };
-    this.createMarker(pos);
+    if (this.distanceInRange(this.state.lastPos, pos, 5)) return;
+    this.createMarker(e.latLng);
+    this.setState({ lastPos: pos });
   };
 
   initMap = () => {
     const mapDiv = document.getElementById('map');
     const map = new google.maps.Map(mapDiv, this.defaultOptions);
+    const path = new google.maps.Polyline({
+      strokeColor: '#000000',
+      strokeOpacity: 1.0,
+      strokeWeight: 3,
+    });
+    path.setMap(map);
     map.addListener('mousemove', this.handleMouseMove);
     this.map = map;
+    this.path = path;
   };
 
   locate = () => {
