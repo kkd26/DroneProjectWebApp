@@ -1,13 +1,12 @@
 import React, { Component } from 'react';
 
 export default class Map extends Component {
-  state = { penDown: false, draggable: true, lastPos: null };
+  state = {
+    penDown: false,
+    draggable: true,
+    lastPos: null,
+  };
   defaultStyles = [
-    {
-      featureType: 'road',
-      elementType: 'geometry',
-      stylers: [{ color: '#FF00FF' }],
-    },
     {
       featureType: 'poi',
       elementType: 'labels',
@@ -26,12 +25,13 @@ export default class Map extends Component {
     maxZoom: 20,
     styles: this.defaultStyles,
     disableDefaultUI: true,
-    streetViewControl: true,
     draggable: true,
     zoomControl: true,
+    mapTypeControl: true,
   };
   map = null;
   path = null;
+  pathLengths = [];
 
   distanceInRange = (p1, p2, maxDist) => {
     if (!p1) return false;
@@ -50,15 +50,19 @@ export default class Map extends Component {
   };
 
   addToPath = (pos) => {
+    const segment = this.pathLengths[this.pathLengths.length - 1];
+    segment.len++;
     this.path.push(pos);
 
-    if (this.path.length % 10 === 1)
-      return new google.maps.Marker({
+    if (this.path.length % 10 === 1) {
+      const marker = new google.maps.Marker({
         position: pos,
         map: this.map,
         label: '' + (((this.path.length / 10) | 0) % 100),
         icon: 'http://maps.google.com/mapfiles/kml/paddle/grn-blank-lv.png',
       });
+      segment.markers.push(marker);
+    }
   };
 
   handleMouseMove = (e) => {
@@ -73,7 +77,7 @@ export default class Map extends Component {
     const mapDiv = document.getElementById('map');
     const map = new google.maps.Map(mapDiv, this.defaultOptions);
     const path = new google.maps.Polyline({
-      strokeColor: '#000000',
+      strokeColor: '#FF00FF',
       strokeOpacity: 1.0,
       strokeWeight: 3,
     });
@@ -113,17 +117,32 @@ export default class Map extends Component {
 
   componentDidMount() {
     this.initMap();
-    document.addEventListener('mousedown', () =>
-      this.setState({ penDown: true })
-    );
-    document.addEventListener('mouseup', () =>
-      this.setState({ penDown: false })
-    );
+    document.addEventListener('mousedown', () => {
+      this.setState({ penDown: true });
+      this.pathLengths.push({ len: 0, markers: [] });
+    });
+    document.addEventListener('mouseup', () => {
+      this.setState({ penDown: false });
+    });
   }
 
   sendPath = () => {
     const points = this.path.Lb.map((p) => ({ lat: p.lat(), lng: p.lng() }));
     console.log(points);
+  };
+
+  undo = () => {
+    if (this.pathLengths.length === 0) return;
+    let segment = this.pathLengths.pop();
+    while (segment.len === 0 && this.pathLengths.length > 0)
+      segment = this.pathLengths.pop();
+    for (let i = 0; i < segment.len; i++) {
+      this.path.removeAt(this.path.length - 1);
+    }
+    for (let i = 0; i < segment.markers.length; i++) {
+      segment.markers[i].setMap(null);
+    }
+    segment.markers = [];
   };
 
   render() {
@@ -136,8 +155,11 @@ export default class Map extends Component {
         <button id="drawToggle" onClick={this.toggleDraggable}>
           {this.state.draggable ? 'Will drag' : 'Will draw'}
         </button>
-        <button id="locate" onClick={this.sendPath}>
+        <button id="sendPath" onClick={this.sendPath}>
           Send path
+        </button>
+        <button id="undo" onClick={this.undo}>
+          Undo
         </button>
         <div
           id="map"
