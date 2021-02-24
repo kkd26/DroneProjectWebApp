@@ -12,7 +12,7 @@ class App extends Component {
   render() {
     return (
       <div>
-        <Menu items={['Nav', 'Options', 'Tab2']} />
+        <Menu items={['Camera', 'Control', 'Map']} />
         <Map />
       </div>
     );
