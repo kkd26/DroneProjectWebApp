@@ -21,11 +21,14 @@ export default class Map extends Component {
   ];
   defaultOptions = {
     center: { lat: 52.1942, lng: 21.0047 },
-    zoom: 14,
+    zoom: 17,
+    minZoom: 15,
+    maxZoom: 20,
     styles: this.defaultStyles,
     disableDefaultUI: true,
     streetViewControl: true,
     draggable: true,
+    zoomControl: true,
   };
   map = null;
   path = null;
@@ -43,26 +46,26 @@ export default class Map extends Component {
       (c(lat1 * p) * c(lat2 * p) * (1 - c((lon2 - lon1) * p))) / 2;
 
     const dist = 12742 * Math.asin(Math.sqrt(a));
-    console.log(dist);
     return 1000 * dist < maxDist;
   };
 
-  createMarker = (pos) => {
-    this.path.getPath().push(pos);
+  addToPath = (pos) => {
+    this.path.push(pos);
 
-    return new google.maps.Marker({
-      position: pos,
-      map: this.map,
-      title: '#' + this.path.getPath().length,
-      icon: 'http://maps.google.com/mapfiles/kml/paddle/grn-blank-lv.png',
-    });
+    if (this.path.length % 10 === 1)
+      return new google.maps.Marker({
+        position: pos,
+        map: this.map,
+        label: '' + (((this.path.length / 10) | 0) % 100),
+        icon: 'http://maps.google.com/mapfiles/kml/paddle/grn-blank-lv.png',
+      });
   };
 
   handleMouseMove = (e) => {
     if (!this.state.penDown) return;
     const pos = { lat: e.latLng.lat(), lng: e.latLng.lng() };
     if (this.distanceInRange(this.state.lastPos, pos, 5)) return;
-    this.createMarker(e.latLng);
+    this.addToPath(e.latLng);
     this.setState({ lastPos: pos });
   };
 
@@ -77,7 +80,7 @@ export default class Map extends Component {
     path.setMap(map);
     map.addListener('mousemove', this.handleMouseMove);
     this.map = map;
-    this.path = path;
+    this.path = path.getPath();
   };
 
   locate = () => {
@@ -118,6 +121,11 @@ export default class Map extends Component {
     );
   }
 
+  sendPath = () => {
+    const points = this.path.Lb.map((p) => ({ lat: p.lat(), lng: p.lng() }));
+    console.log(points);
+  };
+
   render() {
     return (
       <div>
@@ -127,6 +135,9 @@ export default class Map extends Component {
         </button>
         <button id="drawToggle" onClick={this.toggleDraggable}>
           {this.state.draggable ? 'Will drag' : 'Will draw'}
+        </button>
+        <button id="locate" onClick={this.sendPath}>
+          Send path
         </button>
         <div
           id="map"
