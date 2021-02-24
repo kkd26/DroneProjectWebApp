@@ -1,5 +1,6 @@
 import React, { Component } from 'react';
 import Menu from './Menu';
+import Map from './Map';
 
 import './index.scss';
 
@@ -10,7 +11,10 @@ class App extends Component {
 
   render() {
     return (
-      <Menu items={['Nav', 'Options', 'Tab2']} />
+      <div>
+        <Menu items={['Nav', 'Options', 'Tab2']} />
+        <Map />
+      </div>
     );
   }
 }
