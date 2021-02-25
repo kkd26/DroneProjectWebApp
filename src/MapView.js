@@ -1,10 +1,11 @@
 import React, { Component } from 'react';
+import Map from './Map';
 
 class MapView extends Component {
   title = 'Map View';
 
   render() {
-    return <div>MapView Body</div>;
+    return <Map />;
   }
 }
 
