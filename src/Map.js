@@ -147,7 +147,7 @@ export default class Map extends Component {
 
   render() {
     return (
-      <div>
+      <>
         <h1>My google map</h1>
         <button id="locate" onClick={this.locate}>
           Locate me
@@ -164,11 +164,11 @@ export default class Map extends Component {
         <div
           id="map"
           style={{
-            height: '400px',
+            height: '100%',
             width: '100%',
           }}
         ></div>
-      </div>
+      </>
     );
   }
 }
