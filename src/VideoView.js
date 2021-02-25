@@ -1,8 +1,8 @@
 import React, { Component } from 'react';
+import Video from './Video';
 
 class VideoView extends Component {
   title = 'Video View';
-  video_source = 'http://127.0.0.1:5000/video';
   state = { recording: false };
 
   takePicture = () => {
@@ -20,7 +20,7 @@ class VideoView extends Component {
         <button onClick={this.toggleRecording}>
           {this.state.recording ? 'Stop recording' : 'Start recording'}
         </button>
-        <img src={this.video_source}></img>
+        <Video />
       </div>
     );
   };
