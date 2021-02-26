@@ -1,45 +1,51 @@
 import React, { Component } from 'react';
+import {
+  map,
+  pathLengths,
+  initMap,
+  distanceInRange,
+  addToPath,
+} from './map-utils';
+import './Map.scss';
 
 export default class Map extends Component {
-  defaultStyles = [
-    {
-      featureType: 'poi',
-      elementType: 'labels',
-      stylers: [{ visibility: 'off' }],
-    },
-    {
-      featureType: 'transit',
-      elementType: 'labels',
-      stylers: [{ visibility: 'off' }],
-    },
-  ];
-  defaultOptions = {
-    center: { lat: 52.1942, lng: 21.0047 },
-    zoom: 17,
-    minZoom: 15,
-    maxZoom: 20,
-    styles: this.defaultStyles,
-    disableDefaultUI: true,
+  state = {
+    penDown: false,
     draggable: true,
-    zoomControl: true,
-    mapTypeControl: true,
+    lastPos: null,
   };
-  initMap = () => {
-    const mapDiv = document.getElementById('map');
-    const map = new google.maps.Map(mapDiv, this.defaultOptions);
+
+  handleMouseMove = (e) => {
+    if (!this.state.penDown) return;
+    const pos = { lat: e.latLng.lat(), lng: e.latLng.lng() };
+    if (distanceInRange(this.state.lastPos, pos, 5)) return;
+    addToPath(e.latLng);
+    this.setState({ lastPos: pos });
   };
+
+  handleMouseDown = () => {
+    this.setState({ penDown: true });
+    pathLengths.push({ len: 0, markers: [] });
+  };
+
+  handleMouseUp = () => {
+    this.setState({ penDown: false });
+  };
+
   componentDidMount() {
-    this.initMap();
+    initMap();
+    document.addEventListener('mousedown', this.handleMouseDown);
+    this.listener = map.addListener('mousemove', this.handleMouseMove);
+    document.addEventListener('mouseup', this.handleMouseUp);
   }
+
+  componentWillUnmount() {
+    document.removeEventListener('mousedown', this.handleMouseDown);
+    google.maps.event.removeListener(this.listener);
+    document.removeEventListener('mouseup', this.handleMouseUp);
+  }
+
   render() {
-    return (
-      <div
-        id="map"
-        style={{
-          height: '100%',
-          width: '100%',
-        }}
-      ></div>
-    );
+    return <div id="map"></div>;
   }
 }

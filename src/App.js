@@ -22,7 +22,9 @@ class App extends Component {
     return (
       <>
         <div className="view-title">{title}</div>
-        <View />
+        <div className="view-body">
+          <View />
+        </div>
         <Menu changeView={this.changeView.bind(this)} />
       </>
     );

@@ -4,3 +4,9 @@
   text-align: center;
   padding: 10px 0px;
 }
+
+.view-body {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
