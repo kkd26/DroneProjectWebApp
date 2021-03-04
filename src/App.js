@@ -1,5 +1,6 @@
 import React, { Component } from 'react';
 import './App.scss';
+import { ROSContextProvider } from './ROSContext';
 
 import Menu from './Menu';
 
@@ -20,13 +21,13 @@ class App extends Component {
     const View = this.state.View;
     const { title, buttons } = new View();
     return (
-      <>
+      <ROSContextProvider>
         <div className="view-title">{title}</div>
         <div className="view-body">
           <View />
         </div>
         <Menu changeView={this.changeView.bind(this)} />
-      </>
+      </ROSContextProvider>
     );
   }
 }

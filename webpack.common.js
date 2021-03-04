@@ -29,4 +29,9 @@ module.exports = {
       favicon: 'public/favicon.ico',
     }),
   ],
+  resolve: {
+    fallback: {
+      "stream": false
+    }
+  }
 };
