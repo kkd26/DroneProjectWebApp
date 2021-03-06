@@ -12,12 +12,10 @@ const ROSContextDefaultState = {
     alt: 0.0
   },
   droneBattery: 0.0,
-  doTakeoff: () => {},
-  doLand: () => {},
-  doSetFollowerStatus: (enabled) => {},
-  doSetTrackerROI: (region) => {},
-  doSetCameraStreamCallback: (cb) => {},
-  doClearCameraStreamCallback: () => {}
+  doTakeoff: () => { },
+  doLand: () => { },
+  doSetFollowerStatus: (enabled) => { },
+  doSetTrackerROI: (region) => { },
 };
 
 export const ROSContext = React.createContext(ROSContextDefaultState);
@@ -27,9 +25,6 @@ export class ROSContextProvider extends React.Component {
 
   componentDidMount() {
     console.log('ROS Context Provider loaded.');
-
-    let cameraFrameHeader = new Uint8Array();
-    let cameraStreamCallback = undefined;
 
     let ros = new ROSLIB.Ros({
       url: 'ws://' + window.location.hostname + ':9090'
@@ -99,43 +94,6 @@ export class ROSContextProvider extends React.Component {
 
     // TODO: also available: /drone/air_speed with type std_msgs/Float64
 
-    let cameraFrameHeaderListener = new ROSLIB.Topic({
-      ros: ros,
-      name: '/drone/camera_h264_header',
-      messageType: 'sensor_msgs/CompressedImage'
-    });
-
-    let cameraFrameListener = undefined;
-
-    cameraFrameHeaderListener.subscribe((msg) => {
-      cameraFrameHeaderListener.unsubscribe()
-
-      if (msg.format != 'h264_header') {
-        console.log('Invalid camera header format received: ', msg.format);
-        return
-      }
-
-      cameraFrameHeader = msg.data;
-
-      cameraFrameListener = new ROSLIB.Topic({
-        ros: ros,
-        name: '/drone/camera_h264',
-        messageType: 'sensor_msgs/CompressedImage'
-      });
-  
-      cameraFrameListener.subscribe((msg) => {
-        if (msg.format !== 'h264') {
-          console.log('Invalid camera stream format received: ', msg.format);
-          cameraFrameListener.unsubscribe();
-          return
-        }
-  
-        if (cameraStreamCallback) {
-          cameraStreamCallback(msg.data, cameraFrameHeader);
-        }
-      });
-    });
-
     let takeoffPublisher = new ROSLIB.Topic({
       ros: ros,
       name: '/teleop/takeoff',
@@ -157,15 +115,6 @@ export class ROSContextProvider extends React.Component {
       doLand: () => {
         console.log('Landing...');
         landingPublisher.publish(new ROSLIB.Message({}));
-      }
-    }));
-
-    this.setState(state => ({
-      doSetCameraStreamCallback: (cb) => {
-        cameraStreamCallback = cb;
-      },
-      doClearCameraStreamCallback: () => {
-        cameraStreamCallback = undefined;
       }
     }));
   }
