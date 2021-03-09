@@ -41,7 +41,6 @@ class ControlView extends Component {
     this.setState({
       isChoosingTarget: false
     });
-    console.log(roi);
     this.context.doSetTargetROI(roi);
   };
 

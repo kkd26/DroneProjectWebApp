@@ -135,11 +135,7 @@ export class ROSContextProvider extends React.Component {
       name: '/tracker/set_roi',
       serviceType: 'alpha_target_tracker/SetRegionOfInterest'
     });
-
     
-
-    setROIClient.callService()
-
     this.setState(state => ({
       doTakeoff: () => {
         console.log('Taking off...');
@@ -166,7 +162,7 @@ export class ROSContextProvider extends React.Component {
           if (resp.success === false) {
             alert('Failed to set target ROI');
           }
-        })
+        });
       }
     }));
   }
