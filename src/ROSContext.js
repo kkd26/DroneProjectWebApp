@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 
-import ROSLIB from 'roslib'
+import ROSLIB from 'roslib';
 
 const ROSContextDefaultState = {
   rosConnection: false,
@@ -135,7 +135,7 @@ export class ROSContextProvider extends React.Component {
       name: '/tracker/set_roi',
       serviceType: 'alpha_target_tracker/SetRegionOfInterest'
     });
-    
+
     this.setState(state => ({
       doTakeoff: () => {
         console.log('Taking off...');

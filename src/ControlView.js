@@ -6,6 +6,7 @@ import ControlCameraIcon from '@material-ui/icons/ControlCamera';
 import Chip from '@material-ui/core/Chip';
 import Snackbar from '@material-ui/core/Snackbar';
 import { ROSContext } from './ROSContext';
+import FollowerModeSelector from './FollowerModeSelector';
 
 class ControlView extends Component {
   static contextType = ROSContext;
@@ -13,7 +14,12 @@ class ControlView extends Component {
   title = 'Control View';
   icon = (<ControlCameraIcon />);
 
-  state = { displayType: 'map', isTipOpen: false };
+  state = { 
+    displayType: 'map', 
+    isTipOpen: false,
+    isFollowerModeSelectorOpen: false,
+    selectedFollowerMode: 'geographic',
+  };
 
   toggleDisplay = () => {
     const nextDisplay = this.state.displayType == 'map' ? 'video' : 'map';
@@ -44,6 +50,18 @@ class ControlView extends Component {
     this.context.doSetTargetROI(roi);
   };
 
+  startFollowing = () => {
+    this.setState({
+      isFollowerModeSelectorOpen: true
+    });
+  };
+
+  handleFollowerModeSelectorClose = () => {
+    this.setState({
+      isFollowerModeSelectorOpen: false
+    });
+  };
+
   render() {
     return (
       <>
@@ -55,17 +73,21 @@ class ControlView extends Component {
           <Button onClick={ this.context.doLand } >Land</Button>
           { !this.state.isChoosingTarget && <Button onClick={ this.enableTracker } >Choose Target</Button> }
           <Button onClick={ this.disableTracker }>Disable Tracker</Button>
+          <Button onClick={ this.startFollowing }>Start Following</Button>
+          <Button onClick={ this.stopFollowing }>Stop Following</Button>
 
           <Chip label={ `BAT: ${ this.context.droneBattery }%` } />
-          <Chip label={ `STATE: ${ this.context.droneState}` } />
           <Chip label={ `ALT: ${ this.context.droneLocation.alt.toFixed(1) }m` } />
+          <Chip label={ this.context.droneState } />
         </div>
         {this.state.displayType === 'map' && <Map />}
         {this.state.displayType === 'video' && <Video enableROISelection={ this.state.isChoosingTarget } onROISelected= { this.handleROISelected } roi={this.context.targetROI}/>}
         <Snackbar
           open={ this.state.isTipOpen }
           onClose={ this.handleTipClose }
-          message="Draw a rectangle on the image to select the target" />
+          message="Draw a rectangle on the image to select the target" 
+        />
+        <FollowerModeSelector selectedValue={ this.state.selectedFollowerMode } open={ this.state.isFollowerModeSelectorOpen } onClose={ this.handleFollowerModeSelectorClose } />
       </>
     );
   }
