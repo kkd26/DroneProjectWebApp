@@ -4,6 +4,7 @@ import Map from './Map';
 import Video from './Video';
 import ControlCameraIcon from '@material-ui/icons/ControlCamera';
 import Chip from '@material-ui/core/Chip';
+import Snackbar from '@material-ui/core/Snackbar';
 import { ROSContext } from './ROSContext';
 
 class ControlView extends Component {
@@ -12,11 +13,36 @@ class ControlView extends Component {
   title = 'Control View';
   icon = (<ControlCameraIcon />);
 
-  state = { displayType: 'map' };
+  state = { displayType: 'map', isTipOpen: false };
 
   toggleDisplay = () => {
     const nextDisplay = this.state.displayType == 'map' ? 'video' : 'map';
     this.setState({ displayType: nextDisplay });
+  };
+
+  enableTracker = () => {
+    this.setState({
+      isChoosingTarget: true,
+      isTipOpen: true
+    });
+  };
+
+  disableTracker = () => {
+    this.context.doSetTargetROI([[0, 0], [0, 0]], false);
+  }
+
+  handleTipClose = () => {
+    this.setState({
+      isTipOpen: false
+    });
+  };
+
+  handleROISelected = (roi) => {
+    this.setState({
+      isChoosingTarget: false
+    });
+    console.log(roi);
+    this.context.doSetTargetROI(roi);
   };
 
   render() {
@@ -28,14 +54,19 @@ class ControlView extends Component {
           </Button>
           <Button onClick={ this.context.doTakeoff }>Take off</Button>
           <Button onClick={ this.context.doLand } >Land</Button>
+          { !this.state.isChoosingTarget && <Button onClick={ this.enableTracker } >Choose Target</Button> }
+          <Button onClick={ this.disableTracker }>Disable Tracker</Button>
 
           <Chip label={ `BAT: ${ this.context.droneBattery }%` } />
           <Chip label={ `STATE: ${ this.context.droneState}` } />
-          <Chip label={ `GPS: ${ this.context.droneLocation.lon}, ${this.context.droneLocation.lat}`} />
-          <Chip label={ `ALT: ${ this.context.droneLocation.alt }m` } />
+          <Chip label={ `ALT: ${ this.context.droneLocation.alt.toFixed(1) }m` } />
         </div>
         {this.state.displayType === 'map' && <Map />}
-        {this.state.displayType === 'video' && <Video />}
+        {this.state.displayType === 'video' && <Video enableROISelection={ this.state.isChoosingTarget } onROISelected= { this.handleROISelected } roi={this.context.targetROI}/>}
+        <Snackbar
+          open={ this.state.isTipOpen }
+          onClose={ this.handleTipClose }
+          message="Draw a rectangle on the image to select the target" />
       </>
     );
   }

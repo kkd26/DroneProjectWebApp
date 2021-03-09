@@ -12,10 +12,12 @@ const ROSContextDefaultState = {
     alt: 0.0
   },
   droneBattery: 0.0,
+  droneAirspeed: 0.0,
+  targetROI: [[0, 0], [0, 0]],
   doTakeoff: () => { },
   doLand: () => { },
   doSetFollowerStatus: (enabled) => { },
-  doSetTrackerROI: (region) => { },
+  doSetTargetROI: (region) => { },
 };
 
 export const ROSContext = React.createContext(ROSContextDefaultState);
@@ -92,7 +94,17 @@ export class ROSContextProvider extends React.Component {
       }));
     });
 
-    // TODO: also available: /drone/air_speed with type std_msgs/Float64
+    let airspeedListener = new ROSLIB.Topic({
+      ros: ros,
+      name: '/drone/air_speed',
+      messageType: 'std_msgs/Float64'
+    });
+
+    airspeedListener.subscribe((msg) => {
+      this.setState(state => ({
+        droneAirspeed: msg.data
+      }));
+    });
 
     let takeoffPublisher = new ROSLIB.Topic({
       ros: ros,
@@ -106,6 +118,28 @@ export class ROSContextProvider extends React.Component {
       messageType: 'std_msgs/Empty'
     });
 
+    let targetROIListener = new ROSLIB.Topic({
+      ros: ros,
+      name: '/tracker/target_roi',
+      messageType: 'alpha_target_tracker/RegionOfInterestWithFullRes'
+    });
+
+    targetROIListener.subscribe((msg) => {
+      this.setState({
+        targetROI: [[ msg.roi.x_offset, msg.roi.y_offset ], [ msg.roi.x_offset + msg.roi.width, msg.roi.y_offset + msg.roi.height ]]
+      });
+    });
+
+    let setROIClient = new ROSLIB.Service({
+      ros: ros,
+      name: '/tracker/set_roi',
+      serviceType: 'alpha_target_tracker/SetRegionOfInterest'
+    });
+
+    
+
+    setROIClient.callService()
+
     this.setState(state => ({
       doTakeoff: () => {
         console.log('Taking off...');
@@ -115,6 +149,24 @@ export class ROSContextProvider extends React.Component {
       doLand: () => {
         console.log('Landing...');
         landingPublisher.publish(new ROSLIB.Message({}));
+      },
+
+      doSetTargetROI: (roi, enabled = true) => {
+        console.log('Set target ROI');
+        const request = new ROSLIB.ServiceRequest({
+          enabled,
+          roi: {
+            x_offset: Math.round(roi[0][0]),
+            y_offset: Math.round(roi[0][1]),
+            width: Math.round(roi[1][0] - roi[0][0]),
+            height: Math.round(roi[1][1] - roi[0][1])
+          }
+        });
+        setROIClient.callService(request, (resp) => {
+          if (resp.success === false) {
+            alert('Failed to set target ROI');
+          }
+        })
       }
     }));
   }
