@@ -36,29 +36,16 @@ export const initMap = () => {
   });
   path.setMap(map);
   path = path.getPath();
-  locate(map);
+  // locate(map);
 };
 
-export const locate = () => {
+export const locate = (pos) => {
   const infoWindow = new google.maps.InfoWindow();
-  if (navigator.geolocation) {
-    navigator.geolocation.getCurrentPosition(
-      (position) => {
-        const pos = {
-          lat: position.coords.latitude,
-          lng: position.coords.longitude,
-        };
-        infoWindow.setPosition(pos);
-        infoWindow.setContent('Location found.');
-        infoWindow.open(map);
-        map.setCenter(pos);
-        map.setZoom(15);
-      },
-      () => console.log('Error while locating.')
-    );
-  } else {
-    console.log("Couldn't access the geolocation api");
-  }
+  infoWindow.setPosition(pos);
+  infoWindow.setContent('Location found.');
+  infoWindow.open(map);
+  map.setCenter(pos);
+  map.setZoom(18);
 };
 
 export const distanceInRange = (p1, p2, maxDist) => {

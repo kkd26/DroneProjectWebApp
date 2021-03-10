@@ -9,7 +9,7 @@ const ROSContextDefaultState = {
   droneLocation: {
     isFixed: false,
     lat: 0.0,
-    lon: 0.0,
+    lng: 0.0,
     alt: 0.0
   },
   droneBattery: 0.0,
@@ -79,7 +79,7 @@ export class ROSContextProvider extends React.Component {
         droneLocation: {
           isFixed: (msg.status.status == 0),
           lat: msg.latitude,
-          lon: msg.longitude,
+          lng: msg.longitude,
           alt: msg.altitude
         }
       }));
