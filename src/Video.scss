@@ -3,6 +3,7 @@
     height: 100%;
     position: absolute;
     object-fit: contain;
+    user-select: none;
 }
 
 #overlay-canvas {

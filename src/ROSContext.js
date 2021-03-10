@@ -1,3 +1,4 @@
+import { ContactSupportTwoTone } from '@material-ui/icons';
 import React, { Component } from 'react';
 
 import ROSLIB from 'roslib';
@@ -14,9 +15,11 @@ const ROSContextDefaultState = {
   droneBattery: 0.0,
   droneAirspeed: 0.0,
   targetROI: [[0, 0], [0, 0]],
+  trackerEnabled: false,
+  followerMode: 'dummy',
   doTakeoff: () => { },
   doLand: () => { },
-  doSetFollowerStatus: (enabled) => { },
+  doSetFollowerMode: (mode) => { },
   doSetTargetROI: (region) => { },
 };
 
@@ -108,13 +111,13 @@ export class ROSContextProvider extends React.Component {
 
     let takeoffPublisher = new ROSLIB.Topic({
       ros: ros,
-      name: '/teleop/takeoff',
+      name: '/teleop/takeoff_relay',
       messageType: 'std_msgs/Empty'
     });
 
     let landingPublisher = new ROSLIB.Topic({
       ros: ros,
-      name: '/teleop/landing',
+      name: '/teleop/landing_relay',
       messageType: 'std_msgs/Empty'
     });
 
@@ -134,6 +137,12 @@ export class ROSContextProvider extends React.Component {
       ros: ros,
       name: '/tracker/set_roi',
       serviceType: 'alpha_target_tracker/SetRegionOfInterest'
+    });
+
+    const setFollowerModeClient = new ROSLIB.Service({
+      ros: ros,
+      name: '/follower/set_follower',
+      serviceType: 'alpha_target_follower/SetFollower'
     });
 
     this.setState(state => ({
@@ -159,12 +168,50 @@ export class ROSContextProvider extends React.Component {
           }
         });
         setROIClient.callService(request, (resp) => {
-          if (resp.success === false) {
+          if (resp.success !== true) {
             alert('Failed to set target ROI');
           }
         });
+      },
+
+      doSetFollowerMode: (mode, param) => {
+        const request = new ROSLIB.ServiceRequest({
+          name: mode,
+          param: JSON.stringify(param)
+        });
+        setFollowerModeClient.callService(request, (resp) => {
+          if (resp.success !== true) {
+            alert('Failed to set follower mode');
+          }
+        })
       }
     }));
+
+    const trackingStatusListener = new ROSLIB.Topic({
+      ros: ros,
+      name: '/tracker/tracking_status',
+      messageType: 'std_msgs/Bool'
+    });
+
+    trackingStatusListener.subscribe((msg) => {
+      this.setState({
+        trackerEnabled: msg.data
+      });
+    });
+
+    const followerModeListener = new ROSLIB.Topic({
+      ros: ros,
+      name: '/follower/follower_mode',
+      messageType: 'std_msgs/String'
+    });
+
+    followerModeListener.subscribe((msg) => {
+      this.setState({
+        followerMode: msg.data
+      });
+    });
+
+
   }
 
   render() {

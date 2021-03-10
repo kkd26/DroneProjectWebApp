@@ -7,7 +7,7 @@ export default class Video extends Component {
   static contextType = ROSContext;
 
   componentDidMount = () => {
-    const url = 'ws://'+document.location.hostname+':8765/';
+    const url = 'ws://' + document.location.hostname + ':8765/';
     const canvas = document.getElementById('video-canvas');
     const overlayCanvas = document.getElementById('overlay-canvas');
     const jsmpeg = new JSMpeg.Player(url, {
@@ -90,11 +90,16 @@ export default class Video extends Component {
   render() {
     return <div id="container">
       <canvas id="video-canvas"></canvas>
-      <canvas id="overlay-canvas" 
-        width="640" height="360" 
-        onMouseDown={ this.handleMouseDown } 
-        onMouseMove={ this.handleMouseMove }
-        onMouseUp={ this.handleMouseUp }>
+      <canvas id="overlay-canvas"
+        width="640" height="360"
+        onMouseDown={this.handleMouseDown}
+        onTouchStart={this.handleMouseDown}
+        onMouseMove={this.handleMouseMove}
+        onTouchMove={this.handleMouseMove}
+        onMouseUp={this.handleMouseUp}
+        onTouchEnd={this.handleMouseUp}
+        onTouchCancel={this.handleMouseUp}>
+          
 
       </canvas>
     </div>;
